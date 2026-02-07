@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cursor-size: 20px;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  @apply bg-dark-950 text-gray-200 overflow-x-hidden;
+  /* Cleaner, more modern background */
+  background-image:
+    linear-gradient(rgba(20, 184, 166, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 184, 166, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #14b8a6;
+}
+
+/* Glassmorphism Utilities - More angular */
+.glass-panel {
+  @apply bg-gray-900/70 backdrop-blur-md border border-gray-800;
+}
+
+.glass-panel-hover {
+  @apply transition-all duration-300 hover:bg-gray-800/80 hover:border-primary/30;
+}
+
+/* Inputs - Cleaner */
+input,
+textarea,
+select {
+  @apply bg-gray-900 border border-gray-800 text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all duration-300 rounded-lg;
+}
+
+/* Button Gradients - Sharper */
+.btn-primary {
+  @apply bg-primary hover:bg-teal-400 text-black font-bold transition-all duration-300 shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:scale-95;
+}
+
+.btn-secondary {
+  @apply bg-transparent border-2 border-gray-700 hover:border-white transition-all duration-300 active:scale-95;
+}
+
+.animate-pulse-slow {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

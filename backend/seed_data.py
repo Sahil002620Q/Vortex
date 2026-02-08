@@ -8,9 +8,8 @@ import random
 # Init DB
 models.Base.metadata.create_all(bind=engine)
 
-db = SessionLocal()
-
 def seed():
+    db = SessionLocal()
     print("Seeding Database...")
 
     # 1. Create Users

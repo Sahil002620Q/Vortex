@@ -12,6 +12,8 @@ import uuid
 # Init DB
 models.Base.metadata.create_all(bind=database.engine)
 
+import seed_data # Import the seed script
+
 app = FastAPI(title="Marketplace API")
 
 # Mount Static Files
@@ -26,6 +28,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.post("/seed")
+def run_seed_data():
+    try:
+        seed_data.seed()
+        return {"message": "Database seeded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- Auth Endpoints ---
 

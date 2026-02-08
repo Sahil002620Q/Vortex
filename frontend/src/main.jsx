@@ -11,30 +11,25 @@ console.log('--- DEBUG INFO ---');
 console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
 console.log('MODE:', import.meta.env.MODE);
 
-if (import.meta.env.VITE_API_URL) {
-    axios.defaults.baseURL = import.meta.env.VITE_API_URL;
-    alert(`DEBUG: Using API URL: ${axios.defaults.baseURL}`); // Added for debugging
-    console.log('Set Axios BaseURL to:', axios.defaults.baseURL);
+// Hardcoded fallback for production to ensure functionality even if Env Var fails
+const PROD_BACKEND = 'https://vortex-maxf.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || PROD_BACKEND;
 
-    // Interceptor to strip /api prefix in production
-    // Because locally /api triggers proxy rewrite, but prod hits backend directly
-    axios.interceptors.request.use(config => {
-        if (config.url?.startsWith('/api/')) {
-            config.url = config.url.replace('/api/', '/');
-        }
-        return config;
-    });
-} else {
-    console.warn('VITE_API_URL is NOT set. Axios will use relative paths (which basically fails in prod).');
-}
+axios.defaults.baseURL = API_URL;
+console.log('Using Backend URL:', API_URL);
+
+// Interceptor to strip /api prefix 
+// (The backend routes are /auth/login, /products etc., but frontend calls /api/auth/login)
+axios.interceptors.request.use(config => {
+    if (config.url?.startsWith('/api/')) {
+        config.url = config.url.replace('/api/', '/');
+    }
+    return config;
+});
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-        {!import.meta.env.VITE_API_URL && import.meta.env.MODE === 'production' && (
-            <div style={{ background: '#ef4444', color: 'white', padding: '1rem', textAlign: 'center', position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 9999, fontWeight: 'bold' }}>
-                CRITICAL: VITE_API_URL environment variable is missing. Login will not work.
-            </div>
-        )}
+        {/* Error banner removed since we have a hardcoded fallback */}
         <App />
     </React.StrictMode>,
 )

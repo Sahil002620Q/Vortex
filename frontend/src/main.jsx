@@ -10,6 +10,15 @@ import './index.css'
 console.log('API URL:', import.meta.env.VITE_API_URL);
 if (import.meta.env.VITE_API_URL) {
     axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+
+    // Interceptor to strip /api prefix in production
+    // Because locally /api triggers proxy rewrite, but prod hits backend directly
+    axios.interceptors.request.use(config => {
+        if (config.url?.startsWith('/api/')) {
+            config.url = config.url.replace('/api/', '/');
+        }
+        return config;
+    });
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

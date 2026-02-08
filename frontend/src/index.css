@@ -16,6 +16,26 @@ body {
   background-size: 50px 50px;
 }
 
+/* Typography Emphasis */
+strong,
+b {
+  @apply font-bold text-white;
+}
+
+em,
+i {
+  @apply text-primary not-italic font-medium;
+}
+
+.emphasized {
+  @apply text-primary font-bold relative inline-block;
+}
+
+.emphasized::after {
+  content: '';
+  @apply absolute -bottom-1 left-0 w-full h-[2px] bg-primary/50 rounded-full;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

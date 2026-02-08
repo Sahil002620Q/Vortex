@@ -52,6 +52,7 @@ class ProductResponse(ProductBase):
     status: str
     price: Optional[float]
     current_highest_bid: Optional[float]
+    highest_bidder_username: Optional[str] = None # Added for UI display
     end_time: Optional[datetime]
     created_at: datetime
     class Config:

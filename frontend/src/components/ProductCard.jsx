@@ -45,6 +45,11 @@ const ProductCard = ({ product }) => {
                                 <div>
                                     <span className="text-xs text-slate-400 block">Current Bid</span>
                                     <span className="text-lg font-bold text-secondary">₹{product.current_highest_bid}</span>
+                                    {product.highest_bidder_username && (
+                                        <div className="flex items-center justify-end gap-1 mt-1 text-xs text-primary/80">
+                                            <span>👑 {product.highest_bidder_username}</span>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div>

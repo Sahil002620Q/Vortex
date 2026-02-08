@@ -98,7 +98,19 @@ def get_products(
     if search:
         query = query.filter(models.Product.title.contains(search) | models.Product.description.contains(search))
         
-    return query.all()
+    products = query.all()
+    
+    # Populate highest_bidder_username manually
+    results = []
+    for p in products:
+        p_resp = schemas.ProductResponse.from_orm(p)
+        if p.listing_type == 'auction' and p.current_highest_bid > 0:
+            highest_bid = db.query(models.Bid).filter(models.Bid.product_id == p.id).order_by(models.Bid.amount.desc()).first()
+            if highest_bid and highest_bid.bidder:
+                p_resp.highest_bidder_username = highest_bid.bidder.username
+        results.append(p_resp)
+
+    return results
 
 @app.post("/products", response_model=schemas.ProductResponse)
 def create_product(
@@ -141,7 +153,14 @@ def get_product(product_id: int, db: Session = Depends(database.get_db)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    return product
+    p_resp = schemas.ProductResponse.from_orm(product)
+    
+    if product.listing_type == 'auction' and product.current_highest_bid > 0:
+        highest_bid = db.query(models.Bid).filter(models.Bid.product_id == product.id).order_by(models.Bid.amount.desc()).first()
+        if highest_bid and highest_bid.bidder:
+            p_resp.highest_bidder_username = highest_bid.bidder.username
+            
+    return p_resp
 
 @app.post("/products/{product_id}/buy")
 def buy_product(

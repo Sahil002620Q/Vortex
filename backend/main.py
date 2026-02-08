@@ -21,6 +21,7 @@ os.makedirs("static/images", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # CORS
+app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",

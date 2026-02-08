@@ -23,12 +23,22 @@ const ProductDetails = () => {
             const res = await axios.get(`/api/products/${id}`);
             setProduct(res.data);
             if (res.data.listing_type === 'auction') {
+                fetchBids(); // Fetch history
                 connectWebSocket();
             }
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchBids = async () => {
+        try {
+            const res = await axios.get(`/api/products/${id}/bids`);
+            setMessages(res.data);
+        } catch (err) {
+            console.error("Failed to fetch bids", err);
         }
     };
 
@@ -59,21 +69,23 @@ const ProductDetails = () => {
         };
 
         socket.onmessage = (event) => {
-            const msg = event.data;
-            if (msg.startsWith('new_bid:')) {
-                // Format: new_bid:product_id:amount
-                const parts = msg.split(':');
-                if (parts[1] === id) {
-                    const newAmount = parseFloat(parts[2]);
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'new_bid' && msg.product_id == id) {
                     setProduct(prev => ({
                         ...prev,
-                        current_highest_bid: newAmount
+                        current_highest_bid: msg.amount
                     }));
-                    setMessages(prev => [...prev, `New highest bid: ₹${newAmount}`]);
+                    // Add new bid to top of list
+                    setMessages(prev => [{
+                        username: msg.username,
+                        amount: msg.amount,
+                        timestamp: msg.timestamp
+                    }, ...prev]);
                 }
-            } else {
-                // Generic update
-                if (msg.includes('Update')) fetchProduct();
+            } catch (e) {
+                // Handle legacy text messages or errors
+                console.log("WS Message:", event.data);
             }
         };
 
@@ -188,12 +200,35 @@ const ProductDetails = () => {
                                     </form>
                                 )}
 
-                                {/* Live Feed */}
-                                <div className="h-32 overflow-y-auto bg-black/20 rounded-xl p-3 text-sm space-y-1 custom-scrollbar">
-                                    <p className="text-slate-500 italic text-xs">Auction started...</p>
-                                    {messages.map((msg, i) => (
-                                        <p key={i} className="text-emerald-400">⚡ {msg}</p>
-                                    ))}
+                                {/* Live Feed & History */}
+                                <div className="mt-6">
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase mb-3">Bid History</h3>
+                                    <div className="bg-slate-900/50 rounded-xl border border-slate-700 overflow-hidden max-h-60 overflow-y-auto custom-scrollbar">
+                                        {messages.length === 0 ? (
+                                            <p className="p-4 text-slate-500 text-sm text-center italic">No bids yet. Be the first!</p>
+                                        ) : (
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="bg-slate-800 text-slate-400 sticky top-0">
+                                                    <tr>
+                                                        <th className="px-4 py-2 font-medium">User</th>
+                                                        <th className="px-4 py-2 font-medium">Amount</th>
+                                                        <th className="px-4 py-2 font-medium text-right">Time</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-800">
+                                                    {messages.map((bid, i) => (
+                                                        <tr key={i} className="hover:bg-slate-800/30 transition-colors">
+                                                            <td className="px-4 py-2 font-medium text-white">{bid.username}</td>
+                                                            <td className="px-4 py-2 text-primary font-bold">₹{bid.amount}</td>
+                                                            <td className="px-4 py-2 text-slate-500 text-right text-xs">
+                                                                {new Date(bid.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ) : (

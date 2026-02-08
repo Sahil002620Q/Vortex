@@ -65,6 +65,7 @@ class BidResponse(BaseModel):
     id: int
     product_id: int
     user_id: int
+    username: Optional[str] = None # Populated manually or via validator
     amount: float
     timestamp: datetime
     class Config:

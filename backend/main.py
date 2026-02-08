@@ -1,14 +1,22 @@
-from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, File, UploadFile
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime, timedelta
 import models, schemas, database, auth
+import shutil
+import os
+import uuid
 
 # Init DB
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Marketplace API")
+
+# Mount Static Files
+os.makedirs("static/images", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # CORS
 app.add_middleware(
@@ -105,6 +113,18 @@ def create_product(
     db.commit()
     db.refresh(new_product)
     return new_product
+
+@app.post("/upload")
+async def upload_image(file: UploadFile = File(...)):
+    # Generate unique filename
+    file_extension = file.filename.split(".")[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = f"static/images/{unique_filename}"
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    return {"url": f"/static/images/{unique_filename}"}
 
 @app.get("/products/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: int, db: Session = Depends(database.get_db)):
@@ -313,6 +333,29 @@ async def place_bid(
     db.refresh(new_bid)
     
     # Notify WebSocket clients
-    await manager.broadcast(f"new_bid:{product_id}:{bid.amount}")
+    # Send JSON for richer UI update
+    import json
+    msg = json.dumps({
+        "type": "new_bid",
+        "product_id": product_id,
+        "amount": bid.amount,
+        "username": current_user.username,
+        "timestamp": str(datetime.utcnow())
+    })
+    await manager.broadcast(msg)
     
-    return new_bid
+    # Return response with username manually added for the immediate HTTP response
+    response = schemas.BidResponse.from_orm(new_bid)
+    response.username = current_user.username
+    return response
+
+@app.get("/products/{product_id}/bids", response_model=List[schemas.BidResponse])
+def get_product_bids(product_id: int, db: Session = Depends(database.get_db)):
+    bids = db.query(models.Bid).filter(models.Bid.product_id == product_id).order_by(models.Bid.amount.desc()).all()
+    # Manually populate username if not done by ORM (it should be if mapped, but let's ensure)
+    results = []
+    for b in bids:
+        resp = schemas.BidResponse.from_orm(b)
+        resp.username = b.bidder.username if b.bidder else "Unknown"
+        results.append(resp)
+    return results

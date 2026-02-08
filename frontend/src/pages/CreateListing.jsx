@@ -78,9 +78,58 @@ const CreateListing = () => {
                             value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Image URL</label>
-                        <input type="url" className="w-full rounded-xl px-4 py-3" placeholder="https://..."
-                            value={formData.images} onChange={e => setFormData({ ...formData, images: e.target.value })} />
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Image</label>
+                        <div className="space-y-3">
+                            {/* File Upload */}
+                            <div className="flex items-center gap-4">
+                                <label className="flex-1 cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-600 border-dashed rounded-xl px-4 py-3 text-center transition-colors">
+                                    <span className="text-sm text-slate-300">
+                                        {formData.uploading ? 'Uploading...' : 'Click to Upload Image'}
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={async (e) => {
+                                            const file = e.target.files[0];
+                                            if (!file) return;
+
+                                            setFormData(prev => ({ ...prev, uploading: true }));
+                                            const uploadData = new FormData();
+                                            uploadData.append('file', file);
+
+                                            try {
+                                                const res = await axios.post('/api/upload', uploadData, {
+                                                    headers: { 'Content-Type': 'multipart/form-data' }
+                                                });
+                                                // Backend returns relative path, prepend API URL if needed or handle in component
+                                                // For local dev, relative path works with proxy. 
+                                                // For prod, we need full URL if backend is elsewhere.
+                                                // Simplified: store relative path, backend serves static.
+                                                setFormData(prev => ({ ...prev, images: res.data.url, uploading: false }));
+                                            } catch (err) {
+                                                alert("Upload failed");
+                                                setFormData(prev => ({ ...prev, uploading: false }));
+                                            }
+                                        }}
+                                    />
+                                </label>
+                            </div>
+
+                            <div className="text-center text-xs text-slate-500 uppercase font-bold">- OR -</div>
+
+                            {/* URL Input */}
+                            <input
+                                type="url"
+                                className="w-full rounded-xl px-4 py-3 bg-slate-900 border border-slate-700"
+                                placeholder="Enter Image URL directly..."
+                                value={formData.images}
+                                onChange={e => setFormData({ ...formData, images: e.target.value })}
+                            />
+                        </div>
+                        {formData.images && (
+                            <img src={formData.images} alt="Preview" className="mt-4 h-32 w-auto rounded-lg border border-slate-700 object-cover" />
+                        )}
                     </div>
 
                     {listingType === 'direct' ? (

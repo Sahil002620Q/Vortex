@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductCard from '../components/ProductCard';
-import { Search, Filter, RefreshCw } from 'lucide-react';
+import { Search, Filter, RefreshCw, X } from 'lucide-react';
 
 const HomePage = () => {
     const [products, setProducts] = useState([]);
     const [filters, setFilters] = useState({ category: '', listing_type: '', min_price: '', max_price: '', search: '' });
     const [loading, setLoading] = useState(true);
+    const [showFilters, setShowFilters] = useState(false);
 
     const fetchProducts = async () => {
         setLoading(true);
@@ -35,18 +36,34 @@ const HomePage = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex flex-col md:flex-row gap-8">
+            <div className="flex flex-col md:flex-row gap-8 relative">
 
-                {/* Filters Sidebar */}
-                <div className="w-full md:w-64 flex-shrink-0 space-y-6">
-                    <div className="bg-slate-900/50 p-6 rounded-2xl border border-white/5 sticky top-24">
+                {/* Mobile Filter Toggle */}
+                <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="md:hidden flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg mb-4 w-fit border border-slate-700"
+                >
+                    <Filter size={18} /> Filters
+                </button>
+
+                {/* Filters Sidebar - Collapsible on Mobile, Sticky on Desktop */}
+                <div className={`
+                    fixed md:sticky top-0 md:top-24 left-0 h-full md:h-auto w-72 md:w-64 z-40 bg-slate-900 md:bg-transparent p-6 md:p-0 transition-transform duration-300 ease-in-out border-r md:border-r-0 border-slate-800
+                    ${showFilters ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                `}>
+                    <div className="bg-slate-900/50 md:p-6 rounded-2xl md:border border-white/5 h-full overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <Filter size={20} className="text-primary" /> Filters
                             </h2>
-                            <button onClick={fetchProducts} className="text-slate-400 hover:text-white">
-                                <RefreshCw size={16} />
-                            </button>
+                            <div className="flex gap-2">
+                                <button onClick={fetchProducts} className="text-slate-400 hover:text-white" title="Refresh">
+                                    <RefreshCw size={16} />
+                                </button>
+                                <button onClick={() => setShowFilters(false)} className="md:hidden text-slate-400 hover:text-white">
+                                    <X size={20} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Search */}
@@ -108,6 +125,14 @@ const HomePage = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Overlay for mobile drawer */}
+                {showFilters && (
+                    <div
+                        className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm"
+                        onClick={() => setShowFilters(false)}
+                    />
+                )}
 
                 {/* Main Content */}
                 <div className="flex-1">

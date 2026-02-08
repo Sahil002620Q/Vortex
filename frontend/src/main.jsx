@@ -13,6 +13,7 @@ console.log('MODE:', import.meta.env.MODE);
 
 if (import.meta.env.VITE_API_URL) {
     axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+    alert(`DEBUG: Using API URL: ${axios.defaults.baseURL}`); // Added for debugging
     console.log('Set Axios BaseURL to:', axios.defaults.baseURL);
 
     // Interceptor to strip /api prefix in production

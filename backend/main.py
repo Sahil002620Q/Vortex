@@ -25,7 +25,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://vortex-1-n5fc.onrender.com"
+        "https://vortex-1-n5fc.onrender.com",
+        "https://vortex-frontend-4ij4.onrender.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],

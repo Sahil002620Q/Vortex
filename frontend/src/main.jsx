@@ -12,7 +12,9 @@ console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
 console.log('MODE:', import.meta.env.MODE);
 
 // Hardcoded fallback for production to ensure functionality even if Env Var fails
-const PROD_BACKEND = 'https://vortex-maxf.onrender.com';
+// Hardcoded fallback ONLY if Env Var is missing
+// REPLACE THIS WITH YOUR NEW BACKEND URL IF NEEDED
+const PROD_BACKEND = 'https://vortex-backend-ls.onrender.com'; // Example based on your previous screenshot
 const API_URL = import.meta.env.VITE_API_URL || PROD_BACKEND;
 
 axios.defaults.baseURL = API_URL;
